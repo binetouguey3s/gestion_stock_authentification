@@ -98,10 +98,8 @@ def id_existe(id): #id est en entier
                 return False
         except Exception as e:
             print('Erreur vérification ID :', e)
-            conn.rollback()
+            conn.rollback() 
             return False
-
-
 
 # Ajouter un produit à l'inventaire        
 def ajouter_produit(id, designation, categorie, quantite, prix_unitaire):
@@ -136,15 +134,15 @@ def afficher_inventaire():
                 designation = produit[1]
                 categorie = produit[2]
                 
-                # Gérer les valeurs None
+                # Gérer le cas ou les valeurs peuvent etre nulles 
                 quantite = produit[3] if produit[3] is not None else 0 # Valeur par défaut pour la quantité
                 prix = produit[4] if produit[4] is not None else 0.0 # Valeur par défaut pour le prix unitaire
                 conn.commit()
                 # Calcul 
                 try:
                     total = float(quantite) * float(prix) # Calcul du total en gérant les erreurs de conversion
-                except (TypeError, ValueError):
-                    total = 0.0
+                except (TypeError, ValueError): #Gerer les erreurs de type ou de valeur lors du calcul du total
+                    total = 0.0 # Valeur par defaut en cas d' erreur
                 print(f"ID: {id_prod}, Désignation: {designation}, Catégorie: {categorie}, Quantité: {quantite}, Prix unitaire: {prix} FCFA, Total: {total} FCFA")
                 conn.commit()
         except Exception as e:
@@ -169,6 +167,7 @@ def mettre_a_jour_stock(id, nouvelle_quantite):
             print('Erreur mise à jour stock :', e)
             conn.rollback()
 
+
 def rechercher_produit(designation):
     global conn
     global cursor
@@ -176,14 +175,12 @@ def rechercher_produit(designation):
         try:
             cursor = conn.cursor()
             sql = "SELECT * FROM produits WHERE designation LIKE %s"  
-            cursor.execute(sql, ('%' + designation + '%',))
+            cursor.execute(sql, ('%' + designation + '%',)) 
             produit = cursor.fetchone()
-            conn.commit()
 
             mon_produit = produit[1] if produit and produit[1] is not None else "Produit non trouvé" # Gérer les valeurs nulles et les produits non trouvés
             print(f"Produit trouvé : {str(mon_produit).strip()}") # Affichage du produit trouvé en gérant les valeurs nulles et les espaces
-            if produit:
-                print(produit)
+            conn.commit()
         except Exception as e:
             print('Erreur dans la recherche de produit :', e)
             conn.rollback()
@@ -191,7 +188,6 @@ def rechercher_produit(designation):
 def supprimer_produit(id):
     global conn
     global cursor
-    afficher_inventaire()
     if conn:
         # Vérifier d'abord si l'ID existe
         if not id_existe(id):
@@ -201,7 +197,7 @@ def supprimer_produit(id):
         try:
             cursor = conn.cursor()
             sql = "DELETE FROM produits WHERE id = %s"
-            cursor.execute(sql, (id,))
+            cursor.execute(sql, (id,)) 
             conn.commit()
             print(f"Produit avec l'ID {id} supprimé avec succès")
             afficher_inventaire()
@@ -261,7 +257,7 @@ def valeur_totale_stock():
             cursor = conn.cursor()
             sql = "SELECT SUM(quantite * prix_unitaire) FROM produits"
             cursor.execute(sql)
-            resultat = cursor.fetchone()
+            resultat = cursor.fetchone() 
             valeur_totale = resultat[0] if resultat[0] is not None else 0.0 
             print(f"Valeur totale du stock : {float(valeur_totale):.2f} FCFA ") # Affichage de la valeur totale du stock avec formatage en float et gestion des valeurs nulles
         except Exception as e:
@@ -378,8 +374,6 @@ def menu():
 
         elif choix == "7":
             print("Au revoir!")
-            if conn and conn.is_connected():
-                conn.close()
             break
         else:
             print("Choix invalide")
@@ -394,3 +388,4 @@ def fermer_connexion():
 choix_inscription_connexion()
 menu()
 fermer_connexion()
+
